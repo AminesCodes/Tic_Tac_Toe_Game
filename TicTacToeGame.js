@@ -6,14 +6,14 @@ const clr = require('chalk');
 // PLEASE INSTALL THE READLINE-SYNC: npm install readline-sync
 const readByLine = require('readline-sync');
 
-// OPENING
+// OPENING READING FROM CONSOLE
 const rl = require('readline');
 
 
 
 let humanWin = false;
 let computerWin = false;
-let twoPlayrsMode;
+let twoPlayrsMode = false;
 let counter = 0;
 let maxPicks;
 let playersTurn;
@@ -22,6 +22,9 @@ let loseCounter = 0;
 let validChoices = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3'];
 let cyanX = `\u001b[36m\u001b[1mX\u001b[22m\u001b[39m`;
 let greenO = `\u001b[32m\u001b[1mO\u001b[22m\u001b[39m`;
+let p1Name;
+let p2Name;
+let whoStartsPlaying;
 
 
 // Function to initialize a 2D array of 1 space
@@ -55,7 +58,6 @@ C | ${playBoard[2][0]} | ${playBoard[2][1]} | ${playBoard[2][2]} |
 
 
 const isHorizontalWin = (array2D) => {
-
   for (let i = 0; i < 3; i++) {
     if (array2D[i][0] === cyanX && array2D[i][1] === cyanX && array2D[i][2] === cyanX) {
       humanWin = true;
@@ -102,6 +104,7 @@ const isWin = (arr) => {
   isHorizontalWin(arr);
   isVerticalWin(arr);
 }
+
 // Function to determin who's playing: true=>Player1, false=>computer/P2
 const whosTurn = () => { 
   if (twoPlayrsMode) {
@@ -114,60 +117,78 @@ const whosTurn = () => {
   else {
     playersTurn = true;
   }
+  
+
 }
 
+
+const eraseScreen = () => {
+  rl.cursorTo(process.stdout, 0, 0);
+  rl.clearScreenDown(process.stdout);
+}
+
+eraseScreen();
 
 const display = () => {
-    rl.cursorTo(process.stdout, 0, 0);
-    rl.clearScreenDown(process.stdout);
-
-    console.log(`If you wish to quit at anytime, press "control" and "c" to end the game (^c)\n\n`);
-    console.log(clr.bold(`The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.\n`));
-    console.log(clr.cyan(`Entre your choice in the fellowing form :\n`, clr.red.bold(`A1, A2 ... a character (A,B or C) and a number (1, 2 or 3)\n\n`)));
-    console.log(clr.cyan.bold(`General Game progress : \n`, clr.green(`(X) : `, winCounter, clr.keyword('orange')('   (O) : ', loseCounter))));
-    displayBoard();
-    console.log('\ncounter', counter, `\nturns count`, maxPicks);
-    console.log(clr.yellow(`\nPossibles choices : ${clr.keyword('orange')(validChoices)} : `));
+  eraseScreen();
+  console.log(`If you wish to quit at anytime, press "control" and "c" to end the game (^c)\n\n`);
+  console.log(clr.bold(`The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.\n`));
+  console.log(clr.cyan(`Entre your choice in the fellowing form :\n`, clr.red.bold(`A1, A2 ... a character (A,B or C) and a number (1, 2 or 3)\n\n`)));
+  console.log(clr.cyan.bold(`General Game progress : \n`, clr.green(`${p1Name} (X) : `, winCounter, clr.keyword('orange')(`    ${p2Name} (O) : `, loseCounter))));
+  displayBoard();
+  console.log('\n~~~~~~~~~~~~~~ counter', counter, `~~~~~~~~~~~~~~\n~~~~~~~~~~~~~~turns count`, maxPicks, `~~~~~~~~~~~~~~`);
+  console.log(clr.yellow(`\nPossibles choices : ${clr.keyword('orange')(validChoices)} : `));
+  console.log("Who stated playing the battle", whoStartsPlaying);
+  console.log("FULL ?",playBoard.includes(" "));
 }
-display();
 
-// Play Mode (one / two plays) => TRUE:TWO PLAYER_MODE      FALSE:COMPUTER
+// Play Mode (one / two plays) => TRUE:TWO PLAYER_MODE      FALSE:Vs COMPUTER
 const playMode = () => {
-  let answer = readByLine.question(`Please enter ${clr.yellow.bold(`"1"`)} if you want to play against the computer\n${clr.yellow.bold(`"2"`)} for a two players\n`);
+  let answer = readByLine.question(`Please enter ${clr.yellow.bold(`"1"`)} if you want to play against the computer
+             ${clr.yellow.bold(`"2"`)} for a two players mode\n`);
   let userAnswer = (answer.trim()).toLowerCase();
 
-  if (userAnswer == '1') {
-      console.log(`${clr.cyan(userAnswer.toUpperCase())}: against the computer\n`);
-      return false;
-  } else if (userAnswer == '2') {
-      console.log(`${clr.cyan(userAnswer.toUpperCase())}: against an other player\n`);
-      return true;
+  if (userAnswer === '1') {
+      p1Name = readByLine.question(`Enter Player 1 name : `);
+      p2Name = "Computer";
+      twoPlayrsMode = false;
+  } else if (userAnswer === '2') {
+      p1Name = readByLine.question(`Enter Player 1 name : `);
+      p2Name = readByLine.question(`Enter Player 2 name : `);
+      twoPlayrsMode = true;
   } else {
       console.log(`${clr.cyan(userAnswer.toUpperCase())} is an invalid input\n`);
       playMode();
   }
+  whoStartsPlaying = p1Name;
+  whosTurn();
 }
-twoPlayrsMode = playMode();
+
+playMode();
+
+const getMaxPicks = () => {
+  if (twoPlayrsMode) {
+    maxPicks = 9;
+  } else {
+    maxPicks = 5;
+  }
+}
+getMaxPicks();
 display();
-if (twoPlayrsMode) {
-  maxPicks = 9;
-} else {
-  maxPicks = 5;
-}
 
 
 // Function for getting the user's choice 
 const getPlayerChoice = () => {
   let answer;
   if (playersTurn) {
-      answer = readByLine.question(clr.yellow.bold(`Player1 selection : `));
+      answer = readByLine.question(clr.yellow.bold(`${p1Name} selection : `));
   } else if (twoPlayrsMode && !playersTurn) {
-      answer = readByLine.question(clr.yellow.bold(`Player2 selection : `));
+      answer = readByLine.question(clr.yellow.bold(`${p2Name} selection : `));
   }
   let userAnswer = (answer.trim()).toLowerCase();
 
   if (validChoices.includes(userAnswer)) {
-    counter++;
+    counter +=1;
     let xy = userAnswer.split('');
     let x = xy[0]; // letter A, B or C
     if (x === 'a') {
@@ -180,17 +201,16 @@ const getPlayerChoice = () => {
     let y = parseInt(xy[1]) - 1; // num 0, 1, 2
 
     if (playersTurn) {
-        playBoard[x][y] = clr.cyan.bold('X');
+        playBoard[x][y] = cyanX;
     } else if (twoPlayrsMode && !playersTurn){
-        playBoard[x][y] = clr.yellow.bold('O');
+        playBoard[x][y] = greenO;
     }
     validChoices.splice(validChoices.indexOf(userAnswer), 1);
     
   } else {
     console.log(`${clr.red(userAnswer.toUpperCase())} is an invalid input\n`);
     getPlayerChoice();
-  }
-  
+  } 
 }
 
 
@@ -227,13 +247,18 @@ const playRandom = () => {
   }
   let y = parseInt(xy[1]) - 1; // num 0, 1, 2
 
-  playBoard[x][y] = clr.green.bold('O');
+  playBoard[x][y] = greenO;
   validChoices.splice(validChoices.indexOf(computerChoice), 1);
 }
 
 
 // Function for Medium Mode
 const playOffensive = () => {
+  switch (counter) {
+    case 1 : let playerPick = playBoard
+      break;
+    case 2 :
+  }
 
 }
 
@@ -243,62 +268,114 @@ const playDeffensive = () => {
 
 }
 
+const initializeAll = () => {
+  computerWin = false;
+  humanWin = false;
+  counter = 0;
+  validChoices = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3'];
+  playBoard = initialPlayBord(3);
+  getMaxPicks();
+  if (whoStartsPlaying === p1Name) {
+    whoStartsPlaying = p2Name;
+  } else if (whoStartsPlaying === p2Name) {
+    whoStartsPlaying = p1Name;
+  }
+}
+
 // Function to restart the game
 const playAgain = () => {
-  let answer = readByLine.question(clr.red.bold(`Game over\n\nWould you like to play again ? ${clr.green.bold(`Y / N`)} :  `));
+  let answer = readByLine.question(clr.red.bold(`\n\nWould you like to continue playing ? ${clr.green.bold(`Y / N`)} :  `));
   let userAnswer = (answer.trim()).toLowerCase();
 
   if (userAnswer === 'y') {
-      computerWin = false;
-      humanWin = false;
-      counter = 0;
-      playBoard();
+      initializeAll();
+      display();
+      playGame();
   } else if (userAnswer = 'n') {
-    console.log(coloring.yellow.bold(`\nTHANK YOU FOR PLAYING`)); 
+      console.log(clr.yellow.bold(`\nTHANK YOU FOR PLAYING`));
+      if (winCounter > loseCounter) {
+        console.log(`${p1Name} WON THE GAME`);
+      } else if (winCounter < loseCounter) {
+        console.log(`${p2Name} WON THE GAME`);
+      } else {
+        console.log(`THE GAME WAS A TIE`);
+      }
   } else {
       console.log(`${clr.red(userAnswer.toUpperCase())} is an invalid input\n`);
       playAgain();
   }
 }
 
-
+const isGridFull = () => {
+  if (counter >= maxPicks) {
+    return true;
+  }
+}
 
 //
 const playGame = () => {
-  if (!humanWin && !computerWin){
     if (twoPlayrsMode) {
       while (counter < maxPicks && !humanWin && !computerWin) {
-        whosTurn()
+        whosTurn();
         getPlayerChoice();
         display();
         isWin(playBoard);
       }
     } else {
       while (counter < maxPicks && !humanWin && !computerWin) {
-        whosTurn();
-        getPlayerChoice();
-        display();
-        isWin(playBoard);
-        if (!humanWin && !computerWin) {
-            //readByLine.question(clr.yellow.bold(`\nPAUSE !!! `));
+        if (whoStartsPlaying === p1Name){
+          whosTurn();
+          getPlayerChoice();
+          display();
+          isWin(playBoard);
+         
+          if (!humanWin && !computerWin && !isGridFull()) {
+            sleep(1000);
             playRandom();
+            display();
             isWin(playBoard);
+          }
+        } else if (whoStartsPlaying === p2Name) {
+              sleep(1000);
+              playRandom();
+              display();
+              isWin(playBoard);
+
+              if (!humanWin && !computerWin && !isGridFull()) {
+                whosTurn();
+                getPlayerChoice();
+                display();
+                isWin(playBoard);
+              }
         }
-        counter++;
-        display();
-        //readByLine.question(clr.yellow.bold(`\nPAUSE !!! `));
       }  
     }
 
-  } else {
-      if (humanWin) {
-        winCounter++;
-      }
-      if (computerWin) {
-        loseCounter++
-      }
-      playAgain();
-  }
+    if (humanWin) {
+      winCounter += 1;
+      display();
+      console.log(`${p1Name} won this battle!!`)
+    }
+    if (computerWin) {
+      loseCounter += 1;
+      display();
+      console.log(`${p2Name} won this battle!!`)
+    }
+    if (isGridFull()) {
+      display();
+      console.log(`TIE BATTLE`);
+    }
+    playAgain();
 }
 
 playGame();
+
+// Function to simulate JS waiting
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1; i--) { //infinit loop
+    if ((new Date().getTime() - start) > milliseconds) {
+      break;
+    }
+  }
+}
