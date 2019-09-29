@@ -136,10 +136,7 @@ const display = () => {
   console.log(clr.cyan(`Entre your choice in the fellowing form :\n`, clr.red.bold(`A1, A2 ... a character (A,B or C) and a number (1, 2 or 3)\n\n`)));
   console.log(clr.cyan.bold(`General Game progress : \n`, clr.green(`${p1Name} (X) : `, winCounter, clr.keyword('orange')(`    ${p2Name} (O) : `, loseCounter))));
   displayBoard();
-  console.log('\n~~~~~~~~~~~~~~ counter', counter, `~~~~~~~~~~~~~~\n~~~~~~~~~~~~~~turns count`, maxPicks, `~~~~~~~~~~~~~~`);
   console.log(clr.yellow(`\nPossibles choices : ${clr.keyword('orange')(validChoices)} : `));
-  console.log("Who stated playing the battle", whoStartsPlaying);
-  console.log("FULL ?",playBoard.includes(" "));
 }
 
 // Play Mode (one / two plays) => TRUE:TWO PLAYER_MODE      FALSE:Vs COMPUTER
@@ -307,22 +304,31 @@ const playAgain = () => {
 }
 
 const isGridFull = () => {
-  if (counter >= maxPicks) {
-    return true;
+  let noEmptyCase = true;
+  for (let arr of playBoard) {
+    for (let element of arr) {
+      if (element === " ") {
+        noEmptyCase = false;
+      }
+    } 
   }
+  return noEmptyCase;
+  // if (counter >= maxPicks) {
+  //   return true;
+  // }
 }
 
 //
 const playGame = () => {
     if (twoPlayrsMode) {
-      while (counter < maxPicks && !humanWin && !computerWin) {
+      while (!isGridFull() && !humanWin && !computerWin) {
         whosTurn();
         getPlayerChoice();
         display();
         isWin(playBoard);
       }
     } else {
-      while (counter < maxPicks && !humanWin && !computerWin) {
+      while (!isGridFull() && !humanWin && !computerWin) {
         if (whoStartsPlaying === p1Name){
           whosTurn();
           getPlayerChoice();
